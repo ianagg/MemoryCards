@@ -55,6 +55,8 @@
     <Compile Include="FormMemory.Designer.cs">
       <DependentUpon>FormMemory.cs</DependentUpon>
     </Compile>
+    <Compile Include="IPlayable.cs" />
+    <Compile Include="LogicMemory.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="FormMemory.resx">

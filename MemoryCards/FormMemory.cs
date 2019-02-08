@@ -10,106 +10,51 @@ using System.Windows.Forms;
 
 namespace MemoryCards
 {
-    public partial class FormMemory : Form
+    public partial class FormMemory : Form, IPlayable
     {
-        static Random random = new Random();
-        int[] cards = new int[16];
-        bool[] opens = new bool[16];
-
-        int image_a;
-        int image_b;
-
-        enum Status {INIT, FIRST_IMG_OPEN, SECOND_IMG_OPEN, WRONG_ANS};
-        Status status = new Status();
-
-        int done;
+        LogicMemory logic;
 
         public FormMemory()
         {
+
             InitializeComponent();
-            init_game();
+            logic = new LogicMemory(this);
+            logic.CreateNewGame();
+
         }
 
-         private void FormMemory_Load(object sender, EventArgs e)
-         {
-
-         }
-
-        
-       ///////// MENU BAR CLICKS
-       //exit button closses the game
+        ///////// MENU BAR CLICKS
+        //exit button closses the game
         private void menu_game_exit_Click(object sender, EventArgs e)
         {
             Close();
         }
-        
+
         //about button shown the info about the author
         private void menu_help_about_Click(object sender, EventArgs e)
         {
             MessageBox.Show(@"Author: Iana Gureva", "About");
 
         }
-        
+
         //starts the new game
         private void menu_game_newGame_Click(object sender, EventArgs e)
         {
-            init_game();
+            logic.CreateNewGame();
         }
 
-
-        /////////////// GAME FLOW
-        // Initiation of the game parameters
-        private void init_game()
+        //image loader  
+        private void LoadImage(int id, int img)
         {
-            done = 0;
-            int length = cards.Length;
-            for (int i = 0; i < length; i++)
-            {
-                cards[i] = i % (length / 2) + 1;
-                opens[i] = false;
-            }
-
-            //randomazing the images positions
-            for (int i = 0; i < 100; i++)
-            {
-                shuffle_cards();
-            }
-
-            //loading the default images
-            for (int j = 0; j < length; j++)
-            {
-                load_image(j, 0);
-                hide(j);
-            }
-
-            status = Status.INIT;
-
-        }   
-
-        private void shuffle_cards()
-        {
-            int a = random.Next(0, cards.Length);
-            int b = random.Next(0, cards.Length);
-
-            if (a == b) return;
-            int temp;
-            temp = cards[a];
-            cards[a] = cards[b];
-            cards[b] = temp;
-
+            getPictureBox(id).Image = getImage(img);
         }
 
-        private void load_image(int id, int img)
+        private PictureBox getPictureBox(int id)
         {
-            get_picture_box(id).Image = get_image(img);
-        }
 
-        private PictureBox get_picture_box(int id)
-        {
-            
             switch (id)
             {
-                
+
                 case 0: return pictureBox0;
                 case 1: return pictureBox1;
                 case 2: return pictureBox2;
@@ -131,10 +76,10 @@ namespace MemoryCards
 
 
             }
-    
+
         }
 
-        private Image get_image(int img)
+        private Image getImage(int img)
         {
             switch (img)
             {
@@ -155,103 +100,36 @@ namespace MemoryCards
 
         }
 
-        
-        //opens the image for the first time
-        private void show(int id)
-        {
-            load_image(id, cards[id]);
-            get_picture_box(id).Cursor = Cursors.Arrow;
-        }
 
-        //opens the image forever
-        private void open(int id)
-        {
-            opens[id] = true;
-            show(id);
-        }
-
-        //returns to the default image
-        private void hide(int id)
-        {
-            load_image(id, 0);
-            get_picture_box(id).Cursor = Cursors.Hand;
-
-        }
-
-
-        /// MOUSE CLIKS ON IMGS
+        /// MOUSE CLICKS ON IMGS
         private void pictureBox15_MouseClick(object sender, MouseEventArgs e)
         {
             int id = int.Parse(((PictureBox)sender).Tag.ToString());
-            if (opens[id]) return;
-
-            switch (status)
-            {
-                case Status.INIT:
-                    start_sequence(id);
-                    break;
-                case Status.FIRST_IMG_OPEN:
-                    check_if_equals(id);
-                    break;
-                case Status.SECOND_IMG_OPEN:
-                    break;
-                case Status.WRONG_ANS:
-                    wrong_answer(id);
-                    break;
-
-            }
-
+            logic.ClickOnImage(id);
 
         }
 
-        //if the click opens the first image of the pair
-       private void start_sequence(int id)
+        ////// INTERFACE REALIZATION
+        public void ShowCard(int id, int card)
         {
-            image_a = id;
-            status = Status.FIRST_IMG_OPEN;
-            show(image_a);
+            LoadImage(id, card);
+            getPictureBox(id).Cursor = Cursors.Arrow;
         }
 
-       private void check_if_equals(int id)
+        public void HideCard(int id)
         {
-            image_b = id;
-            if (image_a == image_b)
-                return;
+            LoadImage(id, 0);
+            getPictureBox(id).Cursor = Cursors.Hand;
 
-            status = Status.SECOND_IMG_OPEN;
-            show(image_b);
-
-            if(cards[image_b]==cards[image_a])
-            {
-                open(image_a);
-                open(image_b);
-                done += 2;
-                if (done == 16)
-                    win();
-                else
-                    status = Status.INIT;
-            }
-            else
-            {
-                status = Status.WRONG_ANS;
-            }
-            
         }
 
-        private void win()
+        public void Win()
         {
-            MessageBox.Show("Congratulations!","You win!");
-            init_game();
+            MessageBox.Show("Congratulations!", "You win!");
+            logic.CreateNewGame();
         }
 
-      private void wrong_answer(int id)
-        {
-            hide(image_a);
-            hide(image_b);
-            image_a = id;
-            start_sequence(id);
 
-        }
 
-    } 
     }
+}
